@@ -34,7 +34,7 @@ def get_db():
 
 @app.get("/wechat/callback")
 async def wechat_verify(
-    signature: str,
+    msg_signature: str,
     timestamp: str,
     nonce: str,
     echostr: str,
@@ -42,7 +42,7 @@ async def wechat_verify(
 ):
     """企业微信回调验证"""
     wechat_service = WeChatService(db)
-    result = wechat_service.verify_signature(signature, timestamp, nonce, echostr)
+    result = wechat_service.verify_signature(msg_signature, timestamp, nonce, echostr)
     return PlainTextResponse(content=result)
 
 
