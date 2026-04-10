@@ -42,6 +42,7 @@ async def wechat_verify(
 ):
     """企业微信回调验证"""
     wechat_service = WeChatService(db)
+    # 企业微信使用 msg_signature 参数名，但验证逻辑中使用 signature
     result = wechat_service.verify_signature(msg_signature, timestamp, nonce, echostr)
     return PlainTextResponse(content=result)
 
