@@ -13,46 +13,57 @@ import hashlib
 import time
 from typing import Optional
 
+import base64
+import hashlib
+from Crypto.Cipher import AES
 
 class WeChatService:
-    """企业微信服务类"""
-    
     def __init__(self, db: Session):
         self.db = db
-        self.knowledge_service = KnowledgeService(db)
-        self.ticket_service = TicketService(db)
+        self.token = settings.WECHAT_TOKEN
+        self.encoding_aes_key = settings.WECHAT_ENCODING_AES_KEY
+        self.corp_id = settings.WECHAT_CORP_ID
     
     def verify_signature(self, signature: str, timestamp: str, nonce: str, echostr: str) -> str:
-        """验证企业微信回调签名
-    
-        注意：企业微信使用 msg_signature 参数名，但验证逻辑中使用 signature
-        """
-        token = settings.WECHAT_TOKEN
-    
-        # 字典序排序
-        arr = [token, timestamp, nonce]
-        arr.sort()
-    
-        # 拼接字符串
+        """验证企业微信回调签名并解密echostr"""
+        
+        # 1. 验证签名
+        arr = sorted([self.token, timestamp, nonce])
         sign_str = "".join(arr)
-    
-        # SHA1 加密
         sha1 = hashlib.sha1(sign_str.encode('utf-8')).hexdigest()
-    
-        # 调试日志
+        
         print(f"======== 签名验证调试 ========")
-        print(f"Token: {token}")
-        print(f"排序后数组: {arr}")
-        print(f"拼接字符串: {sign_str}")
-        print(f"计算签名(sha1): {sha1}")
+        print(f"Token: {self.token}")
+        print(f"计算签名: {sha1}")
         print(f"企业微信签名: {signature}")
         print(f"签名匹配: {sha1 == signature}")
         print(f"============================")
-    
-        # 验证签名
-        if sha1 == signature:
-            return echostr
-        else:
+        
+        if sha1 != signature:
+            return ""
+        
+        # 2. 解密 echostr
+        try:
+            # 将 EncodingAESKey 转换为字节
+            aes_key = base64.b64decode(self.encoding_aes_key + "=")
+            
+            # 解密
+            cipher = AES.new(aes_key, AES.MODE_CBC, aes_key[:16])
+            decrypted = cipher.decrypt(base64.b64decode(echostr))
+            
+            # 去除填充
+            pad_len = decrypted[-1]
+            content = decrypted[:-pad_len]
+            
+            # 解析内容：16字节随机串 + 4字节消息长度 + 消息内容 + corp_id
+            msg_len = int.from_bytes(content[16:20], byteorder='big')
+            msg_content = content[20:20+msg_len].decode('utf-8')
+            
+            print(f"解密后的消息: {msg_content}")
+            return msg_content
+            
+        except Exception as e:
+            print(f"解密失败: {e}")
             return ""
     
     async def handle_message(self, request: Request) -> str:
