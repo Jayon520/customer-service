@@ -23,35 +23,35 @@ class WeChatService:
         self.ticket_service = TicketService(db)
     
     def verify_signature(self, signature: str, timestamp: str, nonce: str, echostr: str) -> str:
-    """验证企业微信回调"""
-    token = settings.WECHAT_TOKEN
+        """验证企业微信回调"""
+        token = settings.WECHAT_TOKEN
     
-    # 尝试不同的排序方式
-    arr = [token, timestamp, nonce]
-    arr.sort()  # 使用 list.sort() 方法
+        # 尝试不同的排序方式
+        arr = [token, timestamp, nonce]
+        arr.sort()  # 使用 list.sort() 方法
     
-    sign_str = "".join(arr)
-    sha1 = hashlib.sha1(sign_str.encode('utf-8')).hexdigest()
+        sign_str = "".join(arr)
+        sha1 = hashlib.sha1(sign_str.encode('utf-8')).hexdigest()
     
-    # 添加调试日志
-    print(f"======== 签名验证调试===")
-    print(f"Token: {token}")
-    print(f"Token类型: {type(token)}")
-    print(f"排序后数组: {arr}")
-    print(f"拼接字符串: {sign_str}")
-    print(f"拼接字符串(bytes): {sign_str.encode('utf-8')}")
-    print(f"计算签名(sha1): {sha1}")
-    print(f"企业微信签名: {signature}")
-    print(f"签名匹配: {sha1 == signature}")
-    print(f"============================")
+        # 添加调试日志
+        print(f"======== 签名验证调试===")
+        print(f"Token: {token}")
+        print(f"Token类型: {type(token)}")
+        print(f"排序后数组: {arr}")
+        print(f"拼接字符串: {sign_str}")
+        print(f"拼接字符串(bytes): {sign_str.encode('utf-8')}")
+        print(f"计算签名(sha1): {sha1}")
+        print(f"企业微信签名: {signature}")
+        print(f"签名匹配: {sha1 == signature}")
+        print(f"============================")
     
-    # 暂时跳过签名验证，直接返回 echostr（仅用于测试）
-    # TODO: 正式环境必须删除这行，恢复签名验证！
-    return echostr
+        # 暂时跳过签名验证，直接返回 echostr（仅用于测试）
+        # TODO: 正式环境必须删除这行，恢复签名验证！
+        return echostr
     
-    # if sha1 == signature:
-    #     return echostr
-    # return ""
+        # if sha1 == signature:
+        #     return echostr
+        # return ""
     
     async def handle_message(self, request: Request) -> str:
         """
