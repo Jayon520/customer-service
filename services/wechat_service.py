@@ -22,28 +22,36 @@ class WeChatService:
         self.knowledge_service = KnowledgeService(db)
         self.ticket_service = TicketService(db)
     
-    def verify_signature(self, signature: str, timestamp: str, nonce: str, echostr: str) -> str:
-        """
-        验证企业微信回调签名
-        
-        Args:
-            signature: 签名
-            timestamp: 时间戳
-            nonce: 随机数
-            echostr: 随机字符串
-        
-        Returns:
-            echostr 或空字符串
-        """
-        token = settings.WECHAT_TOKEN
-        arr = [token, timestamp, nonce]
-        arr.sort()
-        
-        sha1 = hashlib.sha1("".join(arr).encode()).hexdigest()
-        
-        if sha1 == signature:
-            return echostr
-        return ""
+def verify_signature(self, signature: str, timestamp: str, nonce: str, echostr: str) -> str:
+    """验证企业微信回调签名
+    
+    Args:
+        signature: 签名
+        timestamp: 时间戳
+        nonce: 随机数
+        echostr: 随机字符串
+    
+    Returns:
+        echostr 或空字符串
+    """
+    token = settings.WECHAT_TOKEN
+    arr = sorted([token, timestamp, nonce])
+    sign_str = "".join(arr)
+    sha1 = hashlib.sha1(sign_str.encode()).hexdigest()
+    
+    # 添加调试日志
+    print(f"======== 签名验证调试 ========")
+    print(f"Token: {token}")
+    print(f"排序后数组: {arr}")
+    print(f"拼接字符串: {sign_str}")
+    print(f"计算签名(sha1): {sha1}")
+    print(f"企业微信签名: {signature}")
+    print(f"签名匹配: {sha1 == signature}")
+    print(f"============================")
+    
+    if sha1 == signature:
+        return echostr
+    return ""
     
     async def handle_message(self, request: Request) -> str:
         """
