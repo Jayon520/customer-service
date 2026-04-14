@@ -168,20 +168,37 @@ async def chat_endpoint(
     db: Session = Depends(get_db)
 ):
     """网页聊天接口"""
+    print(f"\n{'='*60}")
+    print(f"[聊天请求] 用户输入: {chat_message.message}")
+    
     # 检索相关知识点
     knowledge_service = KnowledgeService(db)
     relevant_knowledge = await knowledge_service.search(chat_message.message)
+    print(f"[知识库检索] 找到 {len(relevant_knowledge)} 条相关知识")
     
     # 构建上下文
     context = ""
     if relevant_knowledge:
         context = "\n".join([f"Q: {k.title}\nA: {k.content}" for k in relevant_knowledge[:3]])
+        print(f"[上下文] 已构建上下文，长度: {len(context)} 字符")
+    else:
+        print(f"[上下文] 未找到相关知识")
     
     # 构建对话历史
     messages = chat_message.history + [{"role": "user", "content": chat_message.message}]
+    print(f"[对话历史] 消息数量: {len(messages)}")
     
     # 调用大模型
-    reply = await llm_service.chat(messages=messages, context=context)
+    print(f"[LLM调用] 开始调用 DeepSeek API...")
+    try:
+        reply = await llm_service.chat(messages=messages, context=context)
+        print(f"[LLM回复] 成功，回复长度: {len(reply)} 字符")
+        print(f"[LLM回复内容] {reply[:100]}...")
+    except Exception as e:
+        print(f"[LLM错误] {type(e).__name__}: {e}")
+        reply = "抱歉，我遇到了一些问题，请稍后再试或联系人工客服。"
+    
+    print(f"{'='*60}\n")
     
     return {
         "reply": reply,
