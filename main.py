@@ -170,7 +170,7 @@ async def chat_endpoint(
     """网页聊天接口"""
     # 检索相关知识点
     knowledge_service = KnowledgeService(db)
-    relevant_knowledge = knowledge_service.search_knowledge(chat_message.message)
+    relevant_knowledge = await knowledge_service.search(chat_message.message)
     
     # 构建上下文
     context = ""
