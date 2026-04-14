@@ -25,12 +25,11 @@ class KnowledgeService:
         Returns:
             匹配的知识条目列表
         """
-        # 分词查询
-        keywords = query.split()
-        
-        # 构建查询
+        # 构建查询 - 搜索标题、内容、关键词三个字段
         results = self.db.query(Knowledge).filter(
-            Knowledge.content.ilike(f"%{query}%")
+            (Knowledge.title.ilike(f"%{query}%")) |
+            (Knowledge.content.ilike(f"%{query}%")) |
+            (Knowledge.keywords.ilike(f"%{query}%"))
         ).limit(top_k).all()
         
         return results
