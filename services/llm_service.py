@@ -12,10 +12,10 @@ class LLMService:
     
     def __init__(self):
         self.client = AsyncOpenAI(
-            api_key=settings.DEEPSEEK_API_KEY,
-            base_url=settings.DEEPSEEK_BASE_URL
+            api_key=settings.OPENROUTER_API_KEY,
+            base_url=settings.OPENROUTER_BASE_URL
         )
-        self.model = settings.DEEPSEEK_MODEL
+        self.model = settings.OPENROUTER_MODEL
     
     async def chat(
         self, 
