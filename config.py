@@ -13,10 +13,10 @@ class Settings(BaseSettings):
     WECHAT_TOKEN: str = ""  # 回调配置Token
     WECHAT_ENCODING_AES_KEY: str = ""  # 回调配置EncodingAESKey
     
-    # DeepSeek API配置
-    DEEPSEEK_API_KEY: str = ""
-    DEEPSEEK_BASE_URL: str = "https://openrouter.ai/api/v1"
-    DEEPSEEK_MODEL: str = "deepseek/deepseek-chat"
+    # OpenRouter API配置
+    OPENROUTER_API_KEY: str = ""
+    OPENROUTER_BASE_URL: str = "https://openrouter.ai/api/v1"
+    OPENROUTER_MODEL: str = "deepseek/deepseek-chat"
     
     # 数据库配置
     DATABASE_URL: str = "postgresql://postgres:password@localhost/customer_service"
