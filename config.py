@@ -15,8 +15,8 @@ class Settings(BaseSettings):
     
     # DeepSeek API配置
     DEEPSEEK_API_KEY: str = ""
-    DEEPSEEK_BASE_URL: str = "https://api.deepseek.com"
-    DEEPSEEK_MODEL: str = "deepseek-chat"
+    DEEPSEEK_BASE_URL: str = "https://openrouter.ai/api/v1"
+    DEEPSEEK_MODEL: str = "deepseek/deepseek-chat"
     
     # 数据库配置
     DATABASE_URL: str = "postgresql://postgres:password@localhost/customer_service"
