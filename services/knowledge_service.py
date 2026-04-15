@@ -1,16 +1,10 @@
-"""
-知识库服务 - 管理和检索知识库内容
-"""
+"""知识库服务"""
 from sqlalchemy.orm import Session
 from models import Knowledge
-from typing import List, Optional
-import os
-import json
+from typing import List, Optional, Dict
 
 
 class KnowledgeService:
-    """知识库服务类"""
-    
     def __init__(self, db: Session):
         self.db = db
     
@@ -21,7 +15,7 @@ class KnowledgeService:
         Args:
             query: 查询文本
             top_k: 返回前k个结果
-        
+            
         Returns:
             匹配的知识条目列表
         """
@@ -34,44 +28,8 @@ class KnowledgeService:
         
         return results
     
-    def format_context(self, knowledge_list: List[Knowledge]) -> str:
-        """
-        格式化知识库内容为上下文
-        
-        Args:
-            knowledge_list: 知识条目列表
-        
-        Returns:
-            格式化后的文本
-        """
-        if not knowledge_list:
-            return ""
-        
-        context_parts = []
-        for idx, knowledge in enumerate(knowledge_list, 1):
-            context_parts.append(f"【{idx}. {knowledge.title}】\n{knowledge.content}")
-        
-        return "\n\n".join(context_parts)
-    
-    def add_knowledge(
-        self, 
-        title: str, 
-        content: str, 
-        category: str, 
-        keywords: str = ""
-    ) -> Knowledge:
-        """
-        添加知识条目
-        
-        Args:
-            title: 标题
-            content: 内容
-            category: 分类
-            keywords: 关键词
-        
-        Returns:
-            创建的知识条目
-        """
+    def add_knowledge(self, title: str, content: str, category: str, keywords: str = "") -> Knowledge:
+        """添加知识条目"""
         knowledge = Knowledge(
             title=title,
             content=content,
@@ -83,30 +41,30 @@ class KnowledgeService:
         self.db.refresh(knowledge)
         return knowledge
     
-    def import_from_json(self, json_file: str) -> int:
-        """
-        从JSON文件导入知识库
+    def update_knowledge(self, knowledge_id: int, title: Optional[str] = None, 
+                         content: Optional[str] = None, category: Optional[str] = None,
+                         keywords: Optional[str] = None) -> Optional[Knowledge]:
+        """更新知识条目"""
+        knowledge = self.db.query(Knowledge).filter(Knowledge.id == knowledge_id).first()
+        if not knowledge:
+            return None
         
-        Args:
-            json_file: JSON文件路径
+        if title is not None:
+            knowledge.title = title
+        if content is not None:
+            knowledge.content = content
+        if category is not None:
+            knowledge.category = category
+        if keywords is not None:
+            knowledge.keywords = keywords
         
-        Returns:
-            导入的条目数量
-        """
-        with open(json_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-        
-        count = 0
-        for item in data:
-            self.add_knowledge(
-                title=item.get('title', ''),
-                content=item.get('content', ''),
-                category=item.get('category', '未分类'),
-                keywords=item.get('keywords', '')
-            )
-            count += 1
-        
-        return count
+        self.db.commit()
+        self.db.refresh(knowledge)
+        return knowledge
+    
+    def get_knowledge_by_id(self, knowledge_id: int) -> Optional[Knowledge]:
+        """根据ID获取知识条目"""
+        return self.db.query(Knowledge).filter(Knowledge.id == knowledge_id).first()
     
     def get_all_knowledge(self) -> List[Knowledge]:
         """获取所有知识条目"""
@@ -120,3 +78,43 @@ class KnowledgeService:
             self.db.commit()
             return True
         return False
+    
+    def get_knowledge_paginated(self, page: int = 1, page_size: int = 10, keyword: str = "") -> Dict:
+        """
+        分页获取知识列表
+        
+        Args:
+            page: 页码（从1开始）
+            page_size: 每页数量
+            keyword: 搜索关键词
+            
+        Returns:
+            包含 items, total, page, page_size, total_pages 的字典
+        """
+        query = self.db.query(Knowledge)
+        
+        # 如果有搜索关键词
+        if keyword:
+            query = query.filter(
+                (Knowledge.title.ilike(f"%{keyword}%")) |
+                (Knowledge.content.ilike(f"%{keyword}%")) |
+                (Knowledge.keywords.ilike(f"%{keyword}%"))
+            )
+        
+        # 获取总数
+        total = query.count()
+        
+        # 计算分页
+        offset = (page - 1) * page_size
+        items = query.order_by(Knowledge.updated_at.desc()).offset(offset).limit(page_size).all()
+        
+        # 计算总页数
+        total_pages = (total + page_size - 1) // page_size
+        
+        return {
+            "items": items,
+            "total": total,
+            "page": page,
+            "page_size": page_size,
+            "total_pages": total_pages
+        }
