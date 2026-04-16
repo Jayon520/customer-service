@@ -341,30 +341,57 @@
             } catch (error) {
                 console.error('Error:', error);
                 addMessage('抱歉，我遇到了一些问题，请稍后再试。', 'assistant', true);
-            } finally {
-                hideTypingIndicator();
             }
         }
 
         function addMessage(text, sender, isError = false) {
-            const messagesContainer = document.getElementById('chatMessages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}`;
+    const messagesContainer = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `message ${sender}`;
+    
+    const contentDiv = document.createElement('div');
+    contentDiv.className = 'message-content';
+    
+    if (isError) {
+        contentDiv.style.background = '#ffebee';
+        contentDiv.style.color = '#c62828';
+    }
+    
+    messageDiv.appendChild(contentDiv);
+    messagesContainer.appendChild(messageDiv);
+    
+    // 如果是客服消息，使用打字机效果
+    if (sender === 'assistant' && !isError) {
+        typeWriterEffect(contentDiv, text);
+    } else {
+        contentDiv.textContent = text;
+    }
+    
+    // 滚动到底部
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
 
-            const contentDiv = document.createElement('div');
-            contentDiv.className = 'message-content';
-            if (isError) {
-                contentDiv.style.background = '#ffebee';
-                contentDiv.style.color = '#c62828';
-            }
-            contentDiv.textContent = text;
-
-            messageDiv.appendChild(contentDiv);
-            messagesContainer.appendChild(messageDiv);
-
-            // 滚动到底部
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
+// 打字机效果函数
+function typeWriterEffect(element, text, index = 0) {
+    if (index === 0) {
+        element.textContent = '';
+    }
+    
+    if (index < text.length) {
+        element.textContent += text.charAt(index);
+        // 滚动到底部
+        const messagesContainer = document.getElementById('chatMessages');
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        
+        // 随机延迟，模拟真人打字速度（30-80ms）
+        const delay = Math.random() * 50 + 30;
+        setTimeout(() => typeWriterEffect(element, text, index + 1), delay);
+    } else {
+        // 打字完成，恢复发送按钮
+        isTyping = false;
+        document.getElementById('sendButton').disabled = false;
+    }
+}
 
         function showTypingIndicator() {
             isTyping = true;
