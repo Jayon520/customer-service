@@ -127,6 +127,57 @@
         #messageInput:focus {
             border-color: #667eea;
         }
+        .message {
+    margin-bottom: 16px;
+    display: flex;
+    align-items: flex-start;
+    animation: slideIn 0.3s ease;
+}
+
+.message-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.message.user {
+    flex-direction: row-reverse;
+}
+
+.message.user .message-avatar {
+    margin-left: 8px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.message.assistant .message-avatar {
+    margin-right: 8px;
+    background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+}
+
+.message-content-wrapper {
+    display: flex;
+    flex-direction: column;
+}
+
+.message-name {
+    font-size: 12px;
+    color: #999;
+    margin-bottom: 4px;
+}
+
+.message.user .message-name {
+    text-align: right;
+}
+
+.message.assistant .message-name {
+    text-align: left;
+}
 
         #sendButton {
             width: 48px;
@@ -363,6 +414,26 @@
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${sender}`;
     
+    // 头像
+    const avatarDiv = document.createElement('div');
+    avatarDiv.className = 'message-avatar';
+    if (sender === 'user') {
+        avatarDiv.textContent = '👤';
+    } else {
+        // 客服头像（可以用emoji或图片）
+        avatarDiv.innerHTML = '<img src="https://api.dicebear.com/7.x/avataaars/svg?seed=customer-service" style="width:100%;height:100%;border-radius:50%;">';
+    }
+    
+    // 消息容器（名字+气泡）
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.className = 'message-content-wrapper';
+    
+    // 名字
+    const nameDiv = document.createElement('div');
+    nameDiv.className = 'message-name';
+    nameDiv.textContent = sender === 'user' ? '我' : '客服小美';
+    
+    // 气泡
     const contentDiv = document.createElement('div');
     contentDiv.className = 'message-content';
     
@@ -372,7 +443,11 @@
     }
     
     contentDiv.textContent = text;
-    messageDiv.appendChild(contentDiv);
+    
+    wrapperDiv.appendChild(nameDiv);
+    wrapperDiv.appendChild(contentDiv);
+    messageDiv.appendChild(avatarDiv);
+    messageDiv.appendChild(wrapperDiv);
     messagesContainer.appendChild(messageDiv);
     
     // 滚动到底部
