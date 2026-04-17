@@ -304,6 +304,10 @@
     
     if (!message || isTyping) return;
     
+    // 标记正在等待
+    isTyping = true;
+    document.getElementById('sendButton').disabled = true;
+    
     // 清空输入框
     input.value = '';
     input.style.height = 'auto';
@@ -314,9 +318,6 @@
     
     // 隐藏快捷回复
     document.getElementById('quickReplies').style.display = 'none';
-    
-    // 显示加载状态
-    showTypingIndicator();
     
     try {
         const response = await fetch(API_URL, {
@@ -336,23 +337,24 @@
             chatHistory.push({ role: 'assistant', content: data.reply });
             
             // 计算延迟时间（模拟真人打字）
-            // 基础延迟 1-2秒 + 每个字约 40ms
-            const baseDelay = 1000 + Math.random() * 1000; // 1-2秒
+            const baseDelay = 1000 + Math.random() * 1000; // 1-2秒基础延迟
             const typingDelay = data.reply.length * 40; // 每字40ms
             const totalDelay = Math.min(baseDelay + typingDelay, 8000); // 最多8秒
             
-            // 等待后显示回复
+            // 等待后直接显示回复
             setTimeout(() => {
-                hideTypingIndicator();
                 addMessage(data.reply, 'assistant');
+                isTyping = false;
+                document.getElementById('sendButton').disabled = false;
             }, totalDelay);
         } else {
             throw new Error('响应格式错误');
         }
     } catch (error) {
         console.error('Error:', error);
-        hideTypingIndicator();
         addMessage('抱歉，我遇到了一些问题，请稍后再试。', 'assistant', true);
+        isTyping = false;
+        document.getElementById('sendButton').disabled = false;
     }
 }
 
